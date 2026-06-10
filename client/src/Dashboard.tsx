@@ -18,6 +18,22 @@ interface RowData {
 
 type RowState = 'available' | 'maintenance' | 'no-reading' | 'carried' | 'no-bill' | 'unpaid' | 'paid';
 
+/**
+ * Tạm tính tổng tiền khi chưa tạo hóa đơn:
+ * tiền phòng + điện/nước theo chỉ số hiện có (giá riêng của phòng
+ * hoặc giá mặc định) + các khoản phí khác đã nhập.
+ */
+function estimateTotal(d: RowData, config: BillingConfig): number {
+  if (d.room.status !== 'occupied') return 0;
+  const electricRate = d.room.electricRate ?? config.electricRate;
+  const waterRate = d.room.waterRate ?? config.waterRate;
+  const r = d.reading;
+  const electric = r ? (r.electricNew - r.electricOld) * electricRate : 0;
+  const water = r ? (r.waterNew - r.waterOld) * waterRate : 0;
+  const fees = d.fees.reduce((sum, f) => sum + f.amount, 0);
+  return d.room.monthlyRent + electric + water + fees;
+}
+
 function rowState(d: RowData): RowState {
   if (d.room.status === 'maintenance') return 'maintenance';
   if (d.room.status === 'available') return 'available';
@@ -347,7 +363,21 @@ export function Dashboard({ period, refreshKey, onRefresh, onAddTenant, onEditRo
 
                       <td className="num total-cell" data-label="💰 Tổng cộng">
                         <div className="utility-cell">
-                          {b && <strong>{formatCurrency(b.totalAmount)}</strong>}
+                          {b ? (
+                            <strong>{formatCurrency(b.totalAmount)}</strong>
+                          ) : (
+                            (() => {
+                              const est = estimateTotal(d, defaultConfig);
+                              return est > 0 ? (
+                                <span
+                                  className="sub estimate"
+                                  title="Tạm tính: tiền phòng + điện + nước + phí khác (chưa tạo hóa đơn)"
+                                >
+                                  ≈ {formatCurrency(est)}
+                                </span>
+                              ) : null;
+                            })()
+                          )}
                           <span className={`badge ${cls}`}>{label}</span>
                         </div>
                       </td>
