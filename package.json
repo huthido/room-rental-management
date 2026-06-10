@@ -9,9 +9,9 @@
   },
   "scripts": {
     "build": "tsc",
-    "dev": "tsc && concurrently -k -n tsc,server,client -c cyan,yellow,green \"tsc --watch\" \"node --watch dist/src/server.js\" \"pnpm --prefix client dev\"",
+    "dev": "tsc && concurrently -k -n tsc,server,client -c cyan,yellow,green \"tsc --watch\" \"node --watch --env-file-if-exists=.env dist/src/server.js\" \"pnpm --prefix client dev\"",
     "test": "npm run build && node --test \"dist/tests/*.test.js\"",
-    "start": "npm run build && node dist/src/server.js",
+    "start": "npm run build && node --env-file-if-exists=.env dist/src/server.js",
     "demo": "npm run build && node dist/src/demo.js"
   },
   "keywords": ["room", "rental", "management", "billing", "sqlite"],
