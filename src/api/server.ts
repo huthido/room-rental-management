@@ -24,6 +24,7 @@ import {
   addMeterReading,
   updateMeterReading,
   getMeterReadingByMonth,
+  getMeterReadingsByPeriod,
   getEffectiveRatesForRoom,
   createNewMonth,
   getBillsByTenant,
@@ -186,6 +187,14 @@ route(
     }),
   201
 );
+route('GET', '/api/readings', ({ query }) => {
+  const month = Number(query.get('month'));
+  const year = Number(query.get('year'));
+  if (!month || !year) {
+    throw new HttpError(400, 'Thiếu tham số month/year');
+  }
+  return getMeterReadingsByPeriod(month, year);
+});
 route('GET', '/api/readings/:roomId/:year/:month', ({ params }) => {
   return getMeterReadingByMonth(params.roomId, Number(params.month), Number(params.year)) ?? notFound();
 });

@@ -108,6 +108,13 @@ export function getMeterReading(id: string): MeterReading | undefined {
   return row ? rowToReading(row) : undefined;
 }
 
+export function getMeterReadingsByPeriod(month: number, year: number): MeterReading[] {
+  const rows = getDatabase()
+    .prepare('SELECT * FROM meter_readings WHERE month = ? AND year = ?')
+    .all(month, year) as unknown as MeterReadingRow[];
+  return rows.map(rowToReading);
+}
+
 export function getMeterReadingByMonth(roomId: string, month: number, year: number): MeterReading | undefined {
   const row = getDatabase()
     .prepare('SELECT * FROM meter_readings WHERE roomId = ? AND month = ? AND year = ?')

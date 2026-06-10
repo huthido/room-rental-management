@@ -43,40 +43,32 @@ interface Props {
 export function Dashboard({ period, refreshKey, onRefresh, onAddTenant, onEditRoom, onEditTenant }: Props) {
   const [rows, setRows] = useState<RowData[]>([]);
   const [defaultConfig, setDefaultConfig] = useState<BillingConfig | null>(null);
-  const [loading, setLoading] = useState(true);
+  // Chỉ hiện "Đang tải" lần đầu — các lần refresh sau giữ nguyên bảng (không giật)
+  const [loaded, setLoaded] = useState(false);
   const [notice, setNotice] = useState<Notice | null>(null);
 
   const load = useCallback(async () => {
-    setLoading(true);
-    setNotice(null);
     try {
-      const [rooms, tenants, bills, allFees, config] = await Promise.all([
+      // Toàn bộ dữ liệu kỳ trong 6 request song song (chỉ số lấy cả kỳ 1 lần)
+      const [rooms, tenants, bills, allFees, allReadings, config] = await Promise.all([
         api.rooms.list(),
         api.tenants.list(),
         api.bills.list({ month: period.month, year: period.year }),
         api.fees.byPeriod(period.month, period.year),
+        api.readings.byPeriod(period.month, period.year),
         api.config.get(),
       ]);
       setDefaultConfig(config);
 
       const tenantById = new Map(tenants.map(t => [t.id, t]));
       const billByRoom = new Map(bills.map(b => [b.roomId, b]));
+      const readingByRoom = new Map(allReadings.map(r => [r.roomId, r]));
       const feesByRoom = new Map<string, ExtraFee[]>();
       for (const fee of allFees) {
         const list = feesByRoom.get(fee.roomId) ?? [];
         list.push(fee);
         feesByRoom.set(fee.roomId, list);
       }
-
-      const occupied = rooms.filter(r => r.status === 'occupied');
-      const readingResults = await Promise.allSettled(
-        occupied.map(r => api.readings.byMonth(r.id, period.year, period.month))
-      );
-      const readingByRoom = new Map<string, MeterReading>();
-      occupied.forEach((r, i) => {
-        const res = readingResults[i];
-        if (res.status === 'fulfilled') readingByRoom.set(r.id, res.value);
-      });
 
       const sorted = [...rooms].sort((a, b) =>
         a.roomNumber.localeCompare(b.roomNumber, undefined, { numeric: true })
@@ -92,7 +84,7 @@ export function Dashboard({ period, refreshKey, onRefresh, onAddTenant, onEditRo
     } catch (err) {
       setNotice({ kind: 'error', text: (err as Error).message });
     } finally {
-      setLoading(false);
+      setLoaded(true);
     }
   }, [period.month, period.year, refreshKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -171,7 +163,7 @@ export function Dashboard({ period, refreshKey, onRefresh, onAddTenant, onEditRo
     paid:        { label: '✓ Đã thanh toán', cls: 'badge-paid' },
   };
 
-  if (loading || !defaultConfig) {
+  if (!loaded || !defaultConfig) {
     return <div className="dashboard-wrap"><div className="main-card"><div className="empty">Đang tải...</div></div></div>;
   }
 

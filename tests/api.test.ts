@@ -101,6 +101,11 @@ describe('REST API', () => {
     });
     assert.strictEqual(readingRes.status, 201);
 
+    // Lấy toàn bộ chỉ số của kỳ trong 1 request (dashboard dùng)
+    const periodReadings = await api('GET', '/readings?month=5&year=2026');
+    assert.strictEqual(periodReadings.status, 200);
+    assert.ok(periodReadings.data.some((r: { roomId: string }) => r.roomId === roomId));
+
     const billRes = await api('POST', '/bills/calculate', { roomId, tenantId, month: 5, year: 2026 });
     assert.strictEqual(billRes.status, 201);
     assert.strictEqual(billRes.data.roomRent, 4000000);

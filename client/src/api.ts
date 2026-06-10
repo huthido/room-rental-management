@@ -105,6 +105,8 @@ export const api = {
     }) => request<MeterReading>('POST', '/readings', data),
     byMonth: (roomId: string, year: number, month: number) =>
       request<MeterReading>('GET', `/readings/${roomId}/${year}/${month}`),
+    byPeriod: (month: number, year: number) =>
+      request<MeterReading[]>('GET', `/readings?month=${month}&year=${year}`),
     update: (
       id: string,
       data: Partial<Pick<MeterReading, 'electricOld' | 'electricNew' | 'waterOld' | 'waterNew'>>
