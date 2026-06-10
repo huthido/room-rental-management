@@ -1,4 +1,5 @@
-# Dùng cho Coolify (Docker Compose build pack) hoặc chạy local: docker compose up -d
+# Dùng cho Coolify (Build Pack: Docker Compose — volume tự cấu hình sẵn)
+# hoặc chạy local: docker compose up -d
 services:
   app:
     build: .
@@ -8,14 +9,21 @@ services:
     environment:
       - PORT=3000
       - DB_PATH=/app/data/rental.db
-      # Tài khoản đăng nhập — BẮT BUỘC đổi khi deploy thật (mặc định admin/admin)
-      - AUTH_USERNAME=admin
-      - AUTH_PASSWORD=doi-mat-khau-nay
+      # Đặt 3 biến dưới đây trong Coolify UI (Environment Variables) — không thì dùng mặc định
+      # BẮT BUỘC đổi tài khoản khi deploy thật (mặc định admin/admin)
+      - AUTH_USERNAME=${AUTH_USERNAME:-admin}
+      - AUTH_PASSWORD=${AUTH_PASSWORD:-admin}
       # Secret ký token — đặt cố định để không phải đăng nhập lại sau mỗi lần restart
-      - AUTH_SECRET=doi-chuoi-bi-mat-nay
+      - AUTH_SECRET=${AUTH_SECRET:-}
     volumes:
-      # Volume bền vững cho SQLite — KHÔNG xóa khi redeploy
+      # Persistent Storage cho SQLite — dữ liệu KHÔNG mất khi redeploy
       - rental-data:/app/data
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3000/api/health"]
+      interval: 30s
+      timeout: 5s
+      start_period: 10s
+      retries: 3
 
 volumes:
   rental-data:

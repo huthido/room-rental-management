@@ -190,13 +190,14 @@ room-rental-management/
 
 Dự án có sẵn `Dockerfile` multi-stage (build backend + frontend, runtime chỉ cần Node — không có dependency nào khác). Server production tự phục vụ cả API lẫn giao diện web trên cùng một cổng.
 
-### Các bước trên Coolify
+### Các bước trên Coolify (khuyến nghị: Docker Compose)
 
 1. **Tạo resource mới** → chọn repository Git của dự án
-2. **Build Pack**: chọn **Dockerfile** (Coolify tự phát hiện `Dockerfile` ở thư mục gốc)
-3. **Port**: đặt `3000` (Ports Exposes)
-4. **Persistent Storage** (quan trọng — SQLite): thêm volume mount vào **`/app/data`** để dữ liệu không mất khi redeploy
-5. Deploy. Health check có sẵn tại `GET /api/health`
+2. **Build Pack**: chọn **Docker Compose** — volume bền vững `/app/data` cho SQLite và healthcheck **đã cấu hình sẵn** trong `docker-compose.yml`, không cần thêm gì
+3. **Environment Variables**: đặt `AUTH_USERNAME`, `AUTH_PASSWORD`, `AUTH_SECRET` (compose tự nhận qua interpolation)
+4. Deploy. Health check có sẵn tại `GET /api/health`
+
+> **Nếu dùng Build Pack: Dockerfile** thay vì Compose: phải tự thêm **Persistent Storage** mount vào **`/app/data`** trong Coolify UI và đặt Port `3000` — chỉ thị `VOLUME` trong Dockerfile tạo anonymous volume, sẽ bị thay mới khi redeploy (mất dữ liệu) nếu không khai báo storage.
 
 ### Biến môi trường (tùy chọn)
 

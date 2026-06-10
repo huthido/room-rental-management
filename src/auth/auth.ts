@@ -6,12 +6,13 @@ import crypto from 'node:crypto';
  * - Token HMAC-SHA256 ký bằng AUTH_SECRET (không đặt thì sinh ngẫu nhiên mỗi lần
  *   khởi động — restart server sẽ phải đăng nhập lại)
  */
-const SECRET = process.env.AUTH_SECRET ?? crypto.randomBytes(32).toString('hex');
-const USERNAME = process.env.AUTH_USERNAME ?? 'admin';
-const PASSWORD = process.env.AUTH_PASSWORD ?? 'admin';
+// Dùng || thay vì ?? để chuỗi rỗng (ví dụ AUTH_SECRET= trong compose) cũng tính là chưa đặt
+const SECRET = process.env.AUTH_SECRET || crypto.randomBytes(32).toString('hex');
+const USERNAME = process.env.AUTH_USERNAME || 'admin';
+const PASSWORD = process.env.AUTH_PASSWORD || 'admin';
 const TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 ngày
 
-export const usingDefaultCredentials = process.env.AUTH_USERNAME === undefined && process.env.AUTH_PASSWORD === undefined;
+export const usingDefaultCredentials = !process.env.AUTH_USERNAME && !process.env.AUTH_PASSWORD;
 
 function safeEqual(a: string, b: string): boolean {
   const bufA = Buffer.from(a);
