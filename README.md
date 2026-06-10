@@ -193,7 +193,7 @@ Dự án có sẵn `Dockerfile` multi-stage (build backend + frontend, runtime c
 ### Các bước trên Coolify (khuyến nghị: Docker Compose)
 
 1. **Tạo resource mới** → chọn repository Git của dự án
-2. **Build Pack**: chọn **Docker Compose** — volume bền vững `/app/data` cho SQLite và healthcheck **đã cấu hình sẵn** trong `docker-compose.yml`, không cần thêm gì
+2. **Build Pack**: chọn **Docker Compose** (file `docker-compose.yaml` — đúng tên mặc định Coolify tìm) — volume bền vững `/app/data` cho SQLite và healthcheck **đã cấu hình sẵn**, không cần thêm gì
 3. **Environment Variables**: đặt `AUTH_USERNAME`, `AUTH_PASSWORD`, `AUTH_SECRET` (compose tự nhận qua interpolation)
 4. Deploy. Health check có sẵn tại `GET /api/health`
 
