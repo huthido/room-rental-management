@@ -1,0 +1,21 @@
+# Dùng cho Coolify (Docker Compose build pack) hoặc chạy local: docker compose up -d
+services:
+  app:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - DB_PATH=/app/data/rental.db
+      # Tài khoản đăng nhập — BẮT BUỘC đổi khi deploy thật (mặc định admin/admin)
+      - AUTH_USERNAME=admin
+      - AUTH_PASSWORD=doi-mat-khau-nay
+      # Secret ký token — đặt cố định để không phải đăng nhập lại sau mỗi lần restart
+      - AUTH_SECRET=doi-chuoi-bi-mat-nay
+    volumes:
+      # Volume bền vững cho SQLite — KHÔNG xóa khi redeploy
+      - rental-data:/app/data
+
+volumes:
+  rental-data:
